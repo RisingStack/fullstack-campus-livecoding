@@ -2,6 +2,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 
 const { questionsController } = require("./questions/questions.controller");
+const { sessionsController } = require("./sessions/sessions.controller");
+const { usersController } = require("./users/users.controller");
 const config = require("./config");
 
 const port = 3000;
@@ -9,16 +11,14 @@ const app = express();
 
 app.use(express.json());
 
+// QUESTIONS
 app.use(questionsController);
 
 // SESSIONS
-// app.use(sessionsController);
-
-// ANSWERS
-// app.use(answersController);
+app.use(sessionsController);
 
 // USERS
-// app.use(usersController);
+app.use(usersController);
 
 // db.connect(config.dbConnectionString)
 mongoose

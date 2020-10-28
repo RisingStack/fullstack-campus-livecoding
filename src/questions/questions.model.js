@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 
 const answerSchema = new mongoose.Schema({
-  text: String,
+  text: { type: String, required: true },
   isCorrect: { type: Boolean, default: false },
 });
 
 const questionSchema = new mongoose.Schema(
   {
-    text: String,
+    text: { type: String, required: true },
     answers: [answerSchema],
   },
   {
