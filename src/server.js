@@ -1,41 +1,13 @@
 const express = require("express");
-const { ApolloServer, gql } = require("apollo-server-express");
-const {
-  REST: questionsController,
-  GRAPHQL: questionsResolver,
-} = require("./questions/questions.controller");
-const db = require("./db");
+const mongoose = require("mongoose");
+
+const { questionsController } = require("./questions/questions.controller");
 const config = require("./config");
-
-const typeDefs = gql`
-  type Question {
-    id: ID
-    text: String
-  }
-
-  input CreateQuestionInput {
-    text: String!
-  }
-
-  type Query {
-    questions: [Question]
-  }
-
-  type Mutation {
-    createQuestion(c: CreateQuestionInput!): Question
-  }
-`;
-
-// const server = new ApolloServer({ typeDefs, resolvers: questionsResolver });
 
 const port = 3000;
 const app = express();
 
-const path = "/graphql";
-
 app.use(express.json());
-
-// server.applyMiddleware({ app, path });
 
 app.use(questionsController);
 
@@ -48,7 +20,12 @@ app.use(questionsController);
 // USERS
 // app.use(usersController);
 
-db.connect(config.dbConnectionString)
+// db.connect(config.dbConnectionString)
+mongoose
+  .connect(config.dbConnectionString, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => {
     app.listen(port, () => {
       console.log("Server is running on port:", port);

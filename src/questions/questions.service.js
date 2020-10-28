@@ -1,20 +1,51 @@
 const { ObjectId } = require("mongodb");
 
-const db = require("../db");
+const Question = require("./questions.model");
 
-function createQuestion(text) {
-  return db.getDBClient().collection("questions").insertOne({ text });
-}
-
-async function getQuestions() {
-  return db.getDBClient().collection("questions").find().toArray();
-}
-
-async function updateQuestionById(questionId, text) {
-  return db
-    .getDBClient()
-    .collection("questions")
-    .findOneAndUpdate(
+class QuestionService {
+  static createQuestion(text) {
+    return Question.create({ text });
+  }
+  static async getQuestions() {
+    return Question.find();
+  }
+  static async updateAnswer(questionId, answerId, isCorrect) {
+    const question = await Question.findOneAndUpdate(
+      {
+        _id: questionId,
+        "answers._id": answerId,
+      },
+      {
+        $set: {
+          "answers.$.isCorrect": isCorrect,
+        },
+      },
+      {
+        useFindAndModify: false,
+        new: true,
+      }
+    );
+    if (!question) {
+      throw new Error("Question not found");
+    }
+    return question;
+  }
+  static async addAnswerToQuestion(questionId, answer) {
+    return Question.findOneAndUpdate(
+      { _id: ObjectId(questionId) },
+      {
+        $push: {
+          answers: answer,
+        },
+      },
+      {
+        useFindAndModify: false,
+        new: true,
+      }
+    );
+  }
+  static async updateQuestionById(questionId, text) {
+    return Question.findOneAndUpdate(
       { _id: ObjectId(questionId) },
       {
         $set: {
@@ -22,29 +53,17 @@ async function updateQuestionById(questionId, text) {
         },
       },
       {
-        returnNewDocument: true,
+        useFindAndModify: false,
+        new: true,
       }
     );
+  }
+  static async getQuestionById(questionId) {
+    return Question.findById(questionId);
+  }
+  static async deleteQuestionById(questionId) {
+    return Question.deleteOne({ _id: ObjectId(questionId) });
+  }
 }
 
-async function getQuestionById(questionId) {
-  return db
-    .getDBClient()
-    .collection("questions")
-    .findOne({ _id: ObjectId(questionId) });
-}
-
-async function deleteQuestionById(questionId) {
-  return db
-    .getDBClient()
-    .collection("questions")
-    .deleteOne({ _id: ObjectId(questionId) });
-}
-
-module.exports = {
-  createQuestion,
-  getQuestions,
-  updateQuestionById,
-  getQuestionById,
-  deleteQuestionById,
-};
+module.exports = QuestionService;

@@ -7,8 +7,8 @@ const router = express.Router();
 // QUESTIONS
 router.post("/questions", async (req, res) => {
   const question = req.body;
-  const { insertedId } = await questionsService.createQuestion(question.text);
-  res.status(201).send({ id: insertedId });
+  const created = await questionsService.createQuestion(question.text);
+  res.status(201).send(created);
 });
 
 router.get("/questions/:questionId", async (req, res) => {
@@ -34,6 +34,27 @@ router.put("/questions/:questionId", async (req, res) => {
   });
 });
 
+router.post("/questions/:questionId/answers", async (req, res) => {
+  const answer = req.body;
+  const { questionId } = req.params;
+  const question = await questionsService.addAnswerToQuestion(
+    questionId,
+    answer
+  );
+  return res.send(question);
+});
+
+router.put("/questions/:questionId/answers/:answerId", async (req, res) => {
+  const { isCorrect } = req.body;
+  const { questionId, answerId } = req.params;
+  const question = await questionsService.updateAnswer(
+    questionId,
+    answerId,
+    isCorrect
+  );
+  return res.send(question);
+});
+
 router.delete("/questions/:questionId", async (req, res) => {
   await questionsService.deleteQuestionById(req.params.questionId);
   return res.end();
@@ -44,18 +65,4 @@ router.get("/questions", async (req, res) => {
   res.send(questions);
 });
 
-const resolver = {
-  Query: {
-    questions: () => questions,
-  },
-  Mutation: {
-    createQuestion: (_, { c: question }) => {
-      question.id = Math.round(Math.random() * 100);
-      questions.push(question);
-      return question;
-    },
-  },
-};
-
-module.exports.REST = router;
-module.exports.GRAPHQL = resolver;
+module.exports = { questionsController: router };
